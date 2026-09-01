@@ -1,2 +1,5 @@
 .venv
 __pycache__
+outbox.db
+outbox.db-shm
+outbox.db-wal

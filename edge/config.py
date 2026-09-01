@@ -16,9 +16,15 @@ from contracts import Slot
 
 
 @dataclass(frozen=True)
+class SiteConfig:
+    site_id: str
+    cameras: dict
+
+
+@dataclass(frozen=True)
 class CameraConfig:
     camera_id: str
-    source: str
+    source: str          # rtsp:// url, or a local video file path
     sample_fps: float
     slots: list[Slot]
     calib_version: str
@@ -41,9 +47,9 @@ def _load_slots(path: Path) -> tuple[list[Slot], str]:
     return slots, data.get("calib_version", "v0")
 
 
-def load_cameras(path: str = "config/cameras.yaml") -> dict[str, CameraConfig]:
+def load_site(path: str = "config/cameras.yaml") -> SiteConfig:
     """
-    Returns only the cameras marked enabled, keyed by camera_id.
+    Returns the site id plus only the cameras marked enabled.
 
     Skipping disabled cameras here means the rest of the system never
     has to check an 'enabled' flag anywhere.
@@ -59,7 +65,7 @@ def load_cameras(path: str = "config/cameras.yaml") -> dict[str, CameraConfig]:
         slots, calib_version = _load_slots(root / c["slot_file"])
         cameras[c["camera_id"]] = CameraConfig(
             camera_id=c["camera_id"],
-            source=c["source"],
+            source=c.get("source") or c["rtsp_url"],
             sample_fps=float(c["sample_fps"]),
             slots=slots,
             calib_version=calib_version,
@@ -68,4 +74,4 @@ def load_cameras(path: str = "config/cameras.yaml") -> dict[str, CameraConfig]:
     if not cameras:
         raise RuntimeError(f"No enabled cameras found in {path}")
 
-    return cameras
+    return SiteConfig(site_id=data.get("site_id", "SITE01"), cameras=cameras)

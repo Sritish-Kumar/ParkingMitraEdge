@@ -29,6 +29,19 @@ SCRIPT: dict[str, list[tuple]] = {
     "A09": [
         (0, False, None, "EMPTY"),                   # never used
     ],
+    "B01": [
+        (0, True, 91.0, "OK"),
+    ],
+    "B02": [
+        (0, False, None, "EMPTY"),
+        (40, True, 38.0, "ORIENTATION"),             # arrives already crooked
+    ],
+    "C01": [
+        (0, False, None, "EMPTY"),
+    ],
+    "C02": [
+        (0, True, 85.0, "OK"),
+    ],
 }
 
 # Fake bounding boxes, so evidence-crop code has something to work with later.
@@ -37,6 +50,21 @@ BOXES = {
     "A08": (591, 598, 880, 728),
     "A09": None,
 }
+
+
+# Used for any slot not named in SCRIPT, so the fake works with whatever
+# slot ids your calibration produced. Slot #0 stays OK, slot #1 goes bad,
+# slot #2 fills up late, the rest stay empty.
+DEFAULT_TIMELINES = [
+    [(0, True, 93.0, "OK")],
+    [(0, False, None, "EMPTY"),
+     (30, True, 78.0, "OK"),
+     (60, True, 47.5, "BOUNDARY_INTRUSION"),
+     (400, True, 88.0, "OK")],
+    [(0, False, None, "EMPTY"),
+     (90, True, 41.0, "ORIENTATION")],
+    [(0, False, None, "EMPTY")],
+]
 
 
 def _state_at(timeline: list[tuple], frame: int) -> tuple:
@@ -70,8 +98,13 @@ class FakeAnalyzer:
         n = self._frame_no[camera_id]
 
         verdicts = []
-        for slot in self._slots[camera_id]:
-            timeline = SCRIPT.get(slot.slot_id, [(0, False, None, "EMPTY")])
+        for i, slot in enumerate(self._slots[camera_id]):
+            timeline = SCRIPT.get(
+                slot.slot_id,
+                DEFAULT_TIMELINES[i % len(DEFAULT_TIMELINES)],
+            )
+            if timeline is None:
+                timeline = DEFAULT_TIMELINES[i % len(DEFAULT_TIMELINES)]
             _, occupied, score, reason = _state_at(timeline, n)
 
             verdicts.append(
