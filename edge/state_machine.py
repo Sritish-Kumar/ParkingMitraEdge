@@ -26,7 +26,7 @@ from typing import Optional
 CONFIRM_SECONDS = {
     "EMPTY": 3.0,     # car left - fairly obvious
     "OK": 5.0,        # parked well / corrected
-    "BAD": 20.0       # violation - be slow and sure
+    "BAD": 5.0       # violation - be slow and sure
 }
 
 BAD_SCORE_BELOW = 50.0

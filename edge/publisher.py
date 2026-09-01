@@ -32,7 +32,8 @@ class Publisher:
         self.published = 0
 
         self._stop = threading.Event()
-        self._client = mqtt.Client(client_id=client_id)
+        self._client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
+                                   client_id=client_id)
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
 

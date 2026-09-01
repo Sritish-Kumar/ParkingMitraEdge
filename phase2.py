@@ -12,7 +12,7 @@ The path an event takes:
 Kill the broker and events keep accumulating on disk. Bring it back and
 they flush, in order, with no duplicates.
 
-Run:  python main.py
+Run:  python phase2.py
 Stop: Ctrl+C
 """
 
