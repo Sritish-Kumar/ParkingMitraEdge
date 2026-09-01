@@ -11,15 +11,3 @@ cameras:
     sample_fps: 5
     slot_file: config/slots/CAM_01.json
     enabled: true
-
-  - camera_id: CAM_02
-    source: testdata/lot2.mp4
-    sample_fps: 5
-    slot_file: config/slots/CAM_02.json
-    enabled: false
-
-  - camera_id: CAM_03
-    source: testdata/lot3.mp4
-    sample_fps: 5
-    slot_file: config/slots/CAM_03.json
-    enabled: false

@@ -1,23 +1,25 @@
 """
 main.py — Phase 0 runner.
 
-No cameras, no queue, no MQTT yet. This only proves that:
+No queue, no MQTT yet. This only proves that:
   1. the config files load correctly
-  2. the fake analyzer produces the scripted timeline
+  2. the real analyzer detects vehicles and matches them to slot polygons
   3. the contracts fit together
 
 Run:  python main.py
 """
 
-from analyzers.fake import FakeAnalyzer
-from edge.config import load_cameras
+import cv2
+
+from analyzers.real import RealAnalyzer
+from edge.config import load_site
 
 
 def main():
-    cameras = load_cameras("config/cameras.yaml")
+    cameras = load_site("config/cameras.yaml").cameras
     print(f"Loaded {len(cameras)} enabled camera(s)\n")
 
-    analyzer = FakeAnalyzer()
+    analyzer = RealAnalyzer()
 
     for cam in cameras.values():
         print(f"{cam.camera_id}  calib={cam.calib_version}  "
@@ -25,13 +27,22 @@ def main():
         analyzer.configure(cam.camera_id, cam.slots)
 
     cam = next(iter(cameras.values()))
-    print(f"\nReplaying the scripted timeline for {cam.camera_id}:")
-    print("(no real frames - we pass None, the fake ignores it)\n")
+    cap = cv2.VideoCapture(cam.source)
+    if not cap.isOpened():
+        print(f"\nCould not open {cam.source}")
+        return
+
+    print(f"\nRunning the real analyzer against {cam.camera_id} ({cam.source}):\n")
 
     watch = {1, 29, 31, 59, 61, 150, 199, 205}
 
     for n in range(1, 251):
-        verdicts = analyzer.analyze(cam.camera_id, None)
+        ok, frame = cap.read()
+        if not ok:
+            print(f"  (video ended at frame {n})")
+            break
+
+        verdicts = analyzer.analyze(cam.camera_id, frame)
 
         if n in watch:
             print(f"--- frame {n:3d} ---")
@@ -40,6 +51,8 @@ def main():
                 print(f"   {v.slot_id}  occupied={str(v.occupied):5s}  "
                       f"score={score}  {v.reason}")
             print()
+
+    cap.release()
 
 
 if __name__ == "__main__":

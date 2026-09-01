@@ -2,3 +2,9 @@ numpy==2.5.2
 opencv-python==5.0.0.93
 paho-mqtt==2.1.0
 PyYAML==6.0.3
+
+# CPU-only build - the default PyPI torch wheel pulls in several GB of
+# CUDA/cuDNN/NCCL deps we don't need since RealAnalyzer runs on device="cpu".
+--extra-index-url https://download.pytorch.org/whl/cpu
+ultralytics
+torch
